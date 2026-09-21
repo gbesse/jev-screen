@@ -1,0 +1,2 @@
+# Purpose: Development install; the package has no runtime dependencies (stdlib only).
+-e .

@@ -1,0 +1,16 @@
+# Purpose: Keep generated files, local data and caches out of the repository.
+node_modules/
+.local/
+local-data/
+*.sqlite*
+__pycache__/
+*.pyc
+.venv/
+dist/
+build/
+*.egg-info/
+.jev-cache*
+.env
+.env.*
+.DS_Store
+out/

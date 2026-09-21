@@ -1,0 +1,67 @@
+{
+  "_comment": "Purpose: synthetic probabilities for the offline demo and tests, keyed by record title. Values are invented by hand to exercise every bucket; they are not measured Jev output.",
+  "key_field": "title",
+  "default": {},
+  "records": {
+    "Smartphone coaching for glycaemic control in adults with type 2 diabetes: a randomized trial":
+      { "population": 0.95, "intervention": 0.93, "outcome": 0.96, "animal": 0.02, "type1_only": 0.03, "not_primary": 0.04 },
+    "Effect of a text-message self-management program on HbA1c in adults with type 2 diabetes":
+      { "population": 0.94, "intervention": 0.90, "outcome": 0.92, "animal": 0.02, "type1_only": 0.02, "not_primary": 0.05 },
+    "Digital diabetes education platform and glycaemic outcomes: a 12-month controlled study":
+      { "population": 0.91, "intervention": 0.88, "outcome": 0.90, "animal": 0.03, "type1_only": 0.04, "not_primary": 0.12 },
+    "App-supported insulin titration in adults with type 2 diabetes: a pragmatic trial":
+      { "population": 0.93, "intervention": 0.86, "outcome": 0.89, "animal": 0.02, "type1_only": 0.05, "not_primary": 0.06 },
+    "Remote glucose monitoring with automated feedback in type 2 diabetes: a cluster randomized trial":
+      { "population": 0.92, "intervention": 0.85, "outcome": 0.93, "animal": 0.02, "type1_only": 0.03, "not_primary": 0.07 },
+    "Gamified diet tracking application and HbA1c change in adults with type 2 diabetes":
+      { "population": 0.90, "intervention": 0.94, "outcome": 0.88, "animal": 0.01, "type1_only": 0.02, "not_primary": 0.05 },
+    "Voice-assistant medication reminders and glycaemic control in older adults with type 2 diabetes":
+      { "population": 0.96, "intervention": 0.87, "outcome": 0.90, "animal": 0.02, "type1_only": 0.02, "not_primary": 0.04 },
+    "Peer-support chat app versus usual care for adults with type 2 diabetes: a randomized pilot":
+      { "population": 0.93, "intervention": 0.89, "outcome": 0.84, "animal": 0.02, "type1_only": 0.03, "not_primary": 0.15 },
+    "Hepatic insulin signalling in streptozotocin-treated mice fed a high-fat diet":
+      { "population": 0.12, "intervention": 0.03, "outcome": 0.40, "animal": 0.97, "type1_only": 0.02, "not_primary": 0.05 },
+    "In vitro effects of a novel GLP-1 analogue on pancreatic beta-cell lines":
+      { "population": 0.05, "intervention": 0.02, "outcome": 0.30, "animal": 0.98, "type1_only": 0.02, "not_primary": 0.04 },
+    "Continuous glucose monitoring app for adolescents with type 1 diabetes: a randomized trial":
+      { "population": 0.06, "intervention": 0.88, "outcome": 0.85, "animal": 0.02, "type1_only": 0.96, "not_primary": 0.05 },
+    "Closed-loop insulin delivery smartphone controller in adults with type 1 diabetes":
+      { "population": 0.33, "intervention": 0.90, "outcome": 0.85, "animal": 0.02, "type1_only": 0.95, "not_primary": 0.05 },
+    "Digital health interventions for type 2 diabetes: a systematic review and meta-analysis":
+      { "population": 0.85, "intervention": 0.88, "outcome": 0.80, "animal": 0.02, "type1_only": 0.05, "not_primary": 0.96 },
+    "Why digital diabetes care needs better evidence: an editorial":
+      { "population": 0.60, "intervention": 0.70, "outcome": 0.35, "animal": 0.02, "type1_only": 0.04, "not_primary": 0.97 },
+    "Protocol for a randomized trial of an app-based lifestyle program in adults with type 2 diabetes":
+      { "population": 0.92, "intervention": 0.90, "outcome": 0.55, "animal": 0.02, "type1_only": 0.03, "not_primary": 0.93 },
+    "A mobile app for gestational weight management: a randomized trial":
+      { "population": 0.04, "intervention": 0.90, "outcome": 0.15, "animal": 0.02, "type1_only": 0.03, "not_primary": 0.05 },
+    "Smartphone-based blood pressure self-management in adults with hypertension":
+      { "population": 0.03, "intervention": 0.92, "outcome": 0.05, "animal": 0.02, "type1_only": 0.02, "not_primary": 0.05 },
+    "Group-based face-to-face diabetes education and HbA1c in adults with type 2 diabetes":
+      { "population": 0.94, "intervention": 0.06, "outcome": 0.92, "animal": 0.02, "type1_only": 0.03, "not_primary": 0.05 },
+    "Metformin extended-release versus immediate-release in adults with type 2 diabetes: a randomized trial":
+      { "population": 0.95, "intervention": 0.04, "outcome": 0.94, "animal": 0.02, "type1_only": 0.02, "not_primary": 0.04 },
+    "Usability and acceptance of a diabetes self-management app among adults with type 2 diabetes":
+      { "population": 0.93, "intervention": 0.95, "outcome": 0.12, "animal": 0.02, "type1_only": 0.03, "not_primary": 0.06 },
+    "Mobile health support for adults with diabetes: a randomized trial":
+      { "population": 0.55, "intervention": 0.90, "outcome": 0.88, "animal": 0.02, "type1_only": 0.30, "not_primary": 0.05 },
+    "Web-based lifestyle program and metabolic outcomes in adults at high risk of type 2 diabetes":
+      { "population": 0.40, "intervention": 0.85, "outcome": 0.75, "animal": 0.02, "type1_only": 0.02, "not_primary": 0.05 },
+    "Telephone coaching with an optional app for adults with type 2 diabetes: quality of life outcomes":
+      { "population": 0.92, "intervention": 0.62, "outcome": 0.48, "animal": 0.02, "type1_only": 0.03, "not_primary": 0.06 },
+    "Digital self-management for type 2 diabetes in primary care":
+      { "population": 0.85, "intervention": 0.80, "outcome": 0.50, "animal": 0.03, "type1_only": 0.05, "not_primary": 0.35 },
+    "A randomized trial of an app for adults with type 2 diabetes":
+      { "population": 0.90, "intervention": 0.82, "outcome": 0.45, "animal": 0.02, "type1_only": 0.04, "not_primary": 0.10 },
+    "Photo-based meal logging app and glycaemic outcomes in adults with type 2 diabetes: a randomized trial":
+      { "population": 0.94, "intervention": 0.93, "outcome": 0.91, "animal": 0.02, "type1_only": 0.03, "not_primary": 0.05 },
+    "Wearable sensor glucose telemetry in Zucker diabetic fatty rats":
+      { "population": 0.34, "intervention": 0.45, "outcome": 0.80, "animal": 0.98, "type1_only": 0.02, "not_primary": 0.04 },
+    "Digital coaching and HbA1c in adults with type 2 diabetes: a retrospective cohort from an insurer database":
+      { "population": 0.93, "intervention": 0.58, "outcome": 0.90, "animal": 0.02, "type1_only": 0.03, "not_primary": 0.40 },
+    "Cost-effectiveness of a diabetes self-management app: a modelling study":
+      { "population": 0.80, "intervention": 0.72, "outcome": 0.35, "animal": 0.02, "type1_only": 0.03, "not_primary": 0.90 },
+    "Culturally adapted app for glycaemic self-management in adults with type 2 diabetes: a controlled trial":
+      { "population": 0.95, "intervention": 0.92, "outcome": 0.90, "animal": 0.02, "type1_only": 0.03, "not_primary": 0.05 }
+  }
+}

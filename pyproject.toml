@@ -1,0 +1,31 @@
+# Purpose: Package metadata for jev-screen (stdlib-only title/abstract screening CLI and library).
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jev-screen"
+version = "0.1.0"
+description = "Title/abstract screening for systematic reviews with Jev: include/exclude/maybe per criterion, PRISMA counts, RIS export, agreement and recall against human screeners."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Guillaume Besse" }]
+dependencies = []
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+]
+
+[project.scripts]
+jev-screen = "jev_screen.cli:main"
+
+[project.urls]
+Repository = "https://github.com/gbesse/jev-screen"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["jev_screen*"]

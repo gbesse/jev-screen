@@ -1,0 +1,46 @@
+{
+  "_comment": "Purpose: example criteria for a fictional review of digital self-management programs in adults with type 2 diabetes. Thresholds are illustrative defaults, not calibrated values.",
+  "review": "Digital self-management programs and glycaemic control in adults with type 2 diabetes",
+  "inclusion": [
+    {
+      "id": "population",
+      "statement": "The study population consists of adults with type 2 diabetes",
+      "true": "Participants are adults (18 years or older) diagnosed with type 2 diabetes, or a mixed sample where adults with type 2 diabetes are clearly the main group.",
+      "false": "Participants are children, animals, cell lines, people with type 1 or gestational diabetes only, people at risk of diabetes, or people with another condition."
+    },
+    {
+      "id": "intervention",
+      "statement": "The study evaluates a digital self-management program such as a smartphone app, text messages, a web platform or remote monitoring with automated feedback",
+      "true": "A digital tool delivers education, coaching, reminders, monitoring feedback or support directly to the participant.",
+      "false": "The intervention is a drug, a device without a digital program, face-to-face education only, or there is no intervention."
+    },
+    {
+      "id": "outcome",
+      "statement": "The study reports a glycaemic outcome such as HbA1c or blood glucose",
+      "true": "HbA1c, fasting glucose, time in range or another glycaemic measure is reported as a result.",
+      "false": "Only usability, acceptance, cost, quality of life or process outcomes are reported."
+    }
+  ],
+  "exclusion": [
+    {
+      "id": "animal",
+      "statement": "The study is conducted in animals or in vitro only",
+      "true": "The subjects are animals, tissues or cell cultures.",
+      "false": "The subjects are human participants."
+    },
+    {
+      "id": "type1_only",
+      "statement": "The study includes only people with type 1 diabetes",
+      "true": "Every participant has type 1 diabetes and no type 2 group is studied.",
+      "false": "Type 2 diabetes participants are part of the study, or the type is not restricted to type 1."
+    },
+    {
+      "id": "not_primary",
+      "statement": "The record is a review, editorial, protocol, modelling study or conference abstract without original participant results",
+      "true": "It summarises other studies, states an opinion, describes a planned study, or models costs without collecting participant outcomes.",
+      "false": "It reports original results collected from participants."
+    }
+  ],
+  "thresholds": { "include_min": 0.7, "exclude_max": 0.3 },
+  "unknown_policy": "maybe"
+}
