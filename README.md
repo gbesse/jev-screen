@@ -16,6 +16,8 @@ PYTHONPATH=src python -m examples.offline_demo
 
 The demo screens 30 synthetic, fictional records with fixture probabilities (hand-written, **not measured Jev output**), then prints PRISMA counts, a ranked reading order and agreement statistics against a synthetic human file. Optional editable install: `python -m venv .venv && .venv/bin/pip install -r requirements-dev.txt`, after which `jev-screen` is on the venv path and `PYTHONPATH` is not needed.
 
+For a smaller CSV pilot, run `PYTHONPATH=src python -m examples.csv_pilot`. Three fictional records show one `include`, one `exclude` and one `maybe` decision with their first reason. The script writes its output to a temporary directory, uses synthetic fixture probabilities and makes no API call.
+
 ## Call real Jev
 
 ```sh

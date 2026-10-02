@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jev-screen"
-version = "0.1.0"
+version = "0.1.1"
 description = "Title/abstract screening for systematic reviews with Jev: include/exclude/maybe per criterion, PRISMA counts, RIS export, agreement and recall against human screeners."
 readme = "README.md"
 requires-python = ">=3.11"
