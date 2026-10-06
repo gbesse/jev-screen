@@ -1,5 +1,9 @@
 # jev-screen
 
+## Human review CSV · CSV de revue humaine · CSV de revisión humana
+
+Run `PYTHONPATH=src python3 -m examples.csv_review_queue` to export the `maybe` records from the synthetic three-record pilot. The CSV is a review queue, never an automatic exclusion list. / La commande exporte les dossiers `maybe` pour une revue humaine, jamais une liste d'exclusion automatique. / El comando exporta los registros `maybe` para revisión humana, nunca una lista de exclusión automática.
+
 **Title/abstract screening for systematic reviews: screen thousands of bibliographic records against explicit inclusion and exclusion criteria with Jev, get include / exclude / maybe buckets with a reason per criterion, PRISMA counts, RIS exports, and agreement plus recall against your human screeners.**
 
 [![Tests](https://github.com/gbesse/jev-screen/actions/workflows/test.yml/badge.svg)](https://github.com/gbesse/jev-screen/actions/workflows/test.yml) ![MIT](https://img.shields.io/badge/license-MIT-blue) ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue) ![Public alpha](https://img.shields.io/badge/status-public%20alpha-orange)
