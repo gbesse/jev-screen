@@ -104,3 +104,11 @@ CI (`.github/workflows/test.yml`) runs exactly these on Python 3.11 and 3.13 aft
 - [Autonomy Meter](https://github.com/gbesse/autonomy-meter): measuring how much of a workflow can be left to automated decisions, which is the question behind "second screener vs sole decider".
 
 Independent project; not affiliated with TypeSafe AI. API reference: https://docs.typesafe.ai/api. Model limits: https://docs.typesafe.ai/model-jaggedness/jev-1.13.
+
+## October 2026 improvement · Amélioration d’octobre 2026 · Mejora de octubre de 2026
+
+Run `PYTHONPATH=src python3 -m examples.csv_review_queue` to export only `maybe` records with title and inclusion score, ordered for human review. The fixture is synthetic.
+
+Exécutez `PYTHONPATH=src python3 -m examples.csv_review_queue` pour exporter seulement les dossiers `maybe` avec titre et score d’inclusion, classés pour la revue humaine. La fixture est synthétique.
+
+Ejecute `PYTHONPATH=src python3 -m examples.csv_review_queue` para exportar solo los registros `maybe` con título y puntuación de inclusión, ordenados para revisión humana. La muestra es sintética.

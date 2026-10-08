@@ -26,12 +26,12 @@ def run() -> int:
             ])
         if rc:
             return rc
-        writer = csv.DictWriter(sys.stdout, fieldnames=["id", "decision", "reason"])
+        writer = csv.DictWriter(sys.stdout, fieldnames=["id", "title", "decision", "reason", "inclusion_score"])
         writer.writeheader()
         with out.open(encoding="utf-8", newline="") as handle:
-            for row in csv.DictReader(handle):
-                if row["decision"] == "maybe":
-                    writer.writerow({key: row[key] for key in writer.fieldnames})
+            unresolved = [row for row in csv.DictReader(handle) if row["decision"] == "maybe"]
+            for row in sorted(unresolved, key=lambda item: (-float(item["inclusion_score"] or 0), item["id"])):
+                writer.writerow({key: row[key] for key in writer.fieldnames})
     return 0
 
 
