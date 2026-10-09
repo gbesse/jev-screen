@@ -112,3 +112,7 @@ Run `PYTHONPATH=src python3 -m examples.csv_review_queue` to export only `maybe`
 Exécutez `PYTHONPATH=src python3 -m examples.csv_review_queue` pour exporter seulement les dossiers `maybe` avec titre et score d’inclusion, classés pour la revue humaine. La fixture est synthétique.
 
 Ejecute `PYTHONPATH=src python3 -m examples.csv_review_queue` para exportar solo los registros `maybe` con título y puntuación de inclusión, ordenados para revisión humana. La muestra es sintética.
+
+## Contrôle d’adoption · Adoption check · Comprobación de adopción
+
+[Français : essayer un cas concret](examples/adoption-check.md) · [English: try a concrete case](examples/adoption-check.md) · [Español: pruebe un caso concreto](examples/adoption-check.md).
