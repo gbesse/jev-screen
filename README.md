@@ -33,7 +33,7 @@ jev-screen rank decisions.csv --top 50
 jev-screen agreement decisions.csv human.csv
 ```
 
-Only the title and abstract of each record are sent. `--cache` stores validated answers in `.jev-cache.json` keyed by the exact request, so re-runs with the same criteria are free; `screen` resumes from the ids already in `--out`. Cost order of magnitude: 5,000 abstracts with 6 criteria is roughly 3 million input tokens, about USD 0.13 at the published USD 0.042 per million input tokens (an estimate from the price list, not a quote). Official SDKs exist (`typesafe-sdk` on PyPI, `@typesafe-ai/sdk` on npm); this repository ships its own minimal client so users install nothing.
+Only the title and abstract of each record are sent. `--cache` stores validated answers in `.jev-cache.json` keyed by the exact request, so a new output can reuse raw answers from the same provider. Resume now checks protocol, provider and record fingerprints before skipping rows. / La reprise vérifie le protocole, le fournisseur et les dossiers avant de sauter des lignes. / La reanudación verifica protocolo, proveedor y registros antes de omitir filas. Cost order of magnitude: 5,000 abstracts with 6 criteria is roughly 3 million input tokens, about USD 0.13 at the published USD 0.042 per million input tokens (an estimate from the price list, not a quote). Official SDKs exist (`typesafe-sdk` on PyPI, `@typesafe-ai/sdk` on npm); this repository ships its own minimal client so users install nothing.
 
 Inputs: RIS (`.ris`), PubMed MEDLINE (`.nbib`), CSV (`id,title,abstract,year,doi[,authors]`). `.txt` files are sniffed. Outputs: `decisions.csv` (one row per record with decision, reason, `inclusion_score`, one `p_<criterion>` column per criterion, tokens, cache flag) and, with `--export-dir`, `included` / `excluded` / `maybe` as `.ris` (decision in an `N1` note), `.csv` and `.jsonl`.
 
@@ -116,3 +116,11 @@ Ejecute `PYTHONPATH=src python3 -m examples.csv_review_queue` para exportar solo
 ## Contrôle d’adoption · Adoption check · Comprobación de adopción
 
 [Français : essayer un cas concret](examples/adoption-check.md) · [English: try a concrete case](examples/adoption-check.md) · [Español: pruebe un caso concreto](examples/adoption-check.md).
+
+## Reprise traçable / Traceable resume / Reanudación trazable
+
+FR : La version 0.2.0 bloque les reprises obsolètes après changement de critères, seuils ou dossiers. `--receipt nouveau.json` exporte un reçu privé non signé du protocole et du CSV. Les anciens CSV restent lisibles, mais ne prouvent pas leur contexte pour la reprise. [Guide FR/EN/ES](docs/protocol-resume.md).
+
+EN: Version 0.2.0 blocks stale resume after changes to criteria, thresholds or records. `--receipt new.json` exports a private unsigned protocol and CSV receipt. Legacy CSVs remain readable but cannot establish context for resume. [FR/EN/ES guide](docs/protocol-resume.md).
+
+ES: La versión 0.2.0 bloquea reanudaciones obsoletas tras cambios de criterios, umbrales o registros. `--receipt nuevo.json` exporta un recibo privado sin firma del protocolo y CSV. Los CSV antiguos siguen siendo legibles, pero no prueban el contexto para reanudar. [Guía FR/EN/ES](docs/protocol-resume.md).
