@@ -13,7 +13,14 @@ from jev_screen.cli import main
 from jev_screen.client import FakeJev
 from jev_screen.records import Record, to_ris
 from jev_screen.reports import agreement_report, prisma_counts, rank_rows
-from jev_screen.screening import completed_ids, read_decisions, result_columns, screen_one, screen_records
+from jev_screen.screening import (
+    completed_ids,
+    read_decisions,
+    result_columns,
+    result_row,
+    screen_one,
+    screen_records,
+)
 from tests.helpers import criteria
 
 FIXTURES = {
@@ -25,9 +32,13 @@ FIXTURES = {
     }
 }
 RECORDS = [
-    Record(id="r1", title="Include me", abstract="Adults with type 2 diabetes used an app."),
+    Record(
+        id="r1", title="Include me", abstract="Adults with type 2 diabetes used an app."
+    ),
     Record(id="r2", title="Exclude me", abstract="Mice were fed a diet."),
-    Record(id="r3", title="Maybe me", abstract="Adults with diabetes of unstated type."),
+    Record(
+        id="r3", title="Maybe me", abstract="Adults with diabetes of unstated type."
+    ),
     Record(id="r4", title="No abstract"),
 ]
 
@@ -37,15 +48,22 @@ class ScreeningTest(unittest.TestCase):
         fake = FakeJev(FIXTURES)
         results = screen_records(RECORDS, criteria(), fake, concurrency=2)
         labels = [(r.record.id, r.decision.label, r.decision.reason) for r in results]
-        self.assertEqual(labels, [
-            ("r1", "include", "all_criteria_met"),
-            ("r2", "exclude", "inclusion:population"),
-            ("r3", "maybe", "uncertain:population"),
-            ("r4", "maybe", "no_abstract"),
-        ])
-        self.assertEqual(len(fake.calls), 3)  # the record without abstract is never sent
+        self.assertEqual(
+            labels,
+            [
+                ("r1", "include", "all_criteria_met"),
+                ("r2", "exclude", "inclusion:population"),
+                ("r3", "maybe", "uncertain:population"),
+                ("r4", "maybe", "no_abstract"),
+            ],
+        )
+        self.assertEqual(
+            len(fake.calls), 3
+        )  # the record without abstract is never sent
         self.assertEqual(set(fake.calls[0]["state"]), {"title", "abstract"})
-        self.assertEqual(fake.calls[0]["questions"], ["population", "intervention", "animal"])
+        self.assertEqual(
+            fake.calls[0]["questions"], ["population", "intervention", "animal"]
+        )
 
     def test_title_only_judges_records_without_abstract(self):
         fake = FakeJev(FIXTURES)
@@ -54,8 +72,15 @@ class ScreeningTest(unittest.TestCase):
         self.assertEqual(fake.calls[0]["state"], {"title": "No abstract"})
 
     def test_empty_record_is_unjudged(self):
-        result = screen_one(Record(id="e", title="", abstract=""), criteria(), FakeJev(FIXTURES), title_only=True)
-        self.assertEqual((result.decision.label, result.decision.reason), ("maybe", "empty_record"))
+        result = screen_one(
+            Record(id="e", title="", abstract=""),
+            criteria(),
+            FakeJev(FIXTURES),
+            title_only=True,
+        )
+        self.assertEqual(
+            (result.decision.label, result.decision.reason), ("maybe", "empty_record")
+        )
 
     def test_cache_avoids_second_call_and_survives_reload(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -71,14 +96,23 @@ class ScreeningTest(unittest.TestCase):
             second = screen_records(RECORDS, criteria(), fake, cache=reloaded)
             self.assertEqual(len(fake.calls), 3)
             self.assertEqual([r.cached for r in second], [True, True, True, False])
-            self.assertEqual([r.decision.label for r in second], [r.decision.label for r in first])
+            self.assertEqual(
+                [r.decision.label for r in second], [r.decision.label for r in first]
+            )
 
     def test_cache_key_changes_with_criteria(self):
         fake = FakeJev(FIXTURES)
         cache = ResultCache(Path(tempfile.mkdtemp()) / "c.json")
         screen_one(RECORDS[0], criteria(), fake, cache=cache)
         other = criteria()
-        changed = other.__class__(other.review, other.inclusion[:1], other.exclusion, other.include_min, other.exclude_max, other.unknown_policy)
+        changed = other.__class__(
+            other.review,
+            other.inclusion[:1],
+            other.exclusion,
+            other.include_min,
+            other.exclude_max,
+            other.unknown_policy,
+        )
         screen_one(RECORDS[0], changed, fake, cache=cache)
         self.assertEqual(len(fake.calls), 2)
 
@@ -108,7 +142,10 @@ class CliTest(unittest.TestCase):
         self.fixtures.write_text(json.dumps(FIXTURES), encoding="utf-8")
         self.out = base / "decisions.csv"
         self.human = base / "human.csv"
-        self.human.write_text("id,decision\nr1,include\nr2,exclude\nr3,include\nr4,exclude\nr9,include\n", encoding="utf-8")
+        self.human.write_text(
+            "id,decision\nr1,include\nr2,exclude\nr3,include\nr4,exclude\nr9,include\n",
+            encoding="utf-8",
+        )
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -120,26 +157,57 @@ class CliTest(unittest.TestCase):
         return code, out.getvalue(), err.getvalue()
 
     def screen(self, *extra):
-        return self.run_cli("screen", str(self.records), "--criteria", str(self.criteria), "--out", str(self.out),
-                            "--fake", str(self.fixtures), *extra)
+        return self.run_cli(
+            "screen",
+            str(self.records),
+            "--criteria",
+            str(self.criteria),
+            "--out",
+            str(self.out),
+            "--fake",
+            str(self.fixtures),
+            *extra,
+        )
 
     def test_estimate_makes_no_call(self):
-        code, out, _ = self.run_cli("estimate", str(self.records), "--criteria", str(self.criteria), "--json")
+        code, out, _ = self.run_cli(
+            "estimate", str(self.records), "--criteria", str(self.criteria), "--json"
+        )
         self.assertEqual(code, 0)
         data = json.loads(out)
-        self.assertEqual((data["records"], data["requests"], data["without_abstract"]), (4, 3, 1))
+        self.assertEqual(
+            (data["records"], data["requests"], data["without_abstract"]), (4, 3, 1)
+        )
         self.assertGreater(data["estimated_cost_usd"], 0)
 
     def test_screen_resume_and_exports(self):
         export_dir = Path(self.tmp.name) / "exports"
-        code, _, err = self.screen("--export-dir", str(export_dir), "--cache", str(Path(self.tmp.name) / "c.json"))
+        code, _, err = self.screen(
+            "--export-dir",
+            str(export_dir),
+            "--cache",
+            str(Path(self.tmp.name) / "c.json"),
+        )
         self.assertEqual(code, 0, err)
         rows = read_decisions(self.out)
-        self.assertEqual([r["decision"] for r in rows], ["include", "exclude", "maybe", "maybe"])
-        self.assertEqual(completed_ids(self.out, criteria()), {"r1", "r2", "r3", "r4"})
+        self.assertEqual(
+            [r["decision"] for r in rows], ["include", "exclude", "maybe", "maybe"]
+        )
+        self.assertEqual(
+            completed_ids(
+                self.out, criteria(), records=RECORDS, provider=FakeJev(FIXTURES)
+            ),
+            {"r1", "r2", "r3", "r4"},
+        )
         self.assertAlmostEqual(rows[0]["p_population"], 0.9)
         self.assertIsNone(rows[3]["inclusion_score"])
-        for name in ("included.ris", "excluded.ris", "maybe.ris", "included.csv", "maybe.jsonl"):
+        for name in (
+            "included.ris",
+            "excluded.ris",
+            "maybe.ris",
+            "included.csv",
+            "maybe.jsonl",
+        ):
             self.assertTrue((export_dir / name).exists(), name)
         self.assertIn("decision=include", (export_dir / "included.ris").read_text())
         # Resume: nothing new to do, file untouched apart from no duplicate rows.
@@ -153,7 +221,11 @@ class CliTest(unittest.TestCase):
         with self.out.open("w", encoding="utf-8", newline="") as handle:
             writer = csv.DictWriter(handle, fieldnames=header)
             writer.writeheader()
-            writer.writerow({"id": "r1", "title": "Include me", "decision": "include", "reason": "all_criteria_met"})
+            writer.writerow(
+                result_row(
+                    screen_one(RECORDS[0], criteria(), FakeJev(FIXTURES)), criteria()
+                )
+            )
         code, _, err = self.screen()
         self.assertEqual(code, 0, err)
         rows = read_decisions(self.out)
@@ -162,7 +234,16 @@ class CliTest(unittest.TestCase):
 
     def test_resume_refuses_mismatched_header(self):
         self.out.write_text("id,decision,reason\nr1,include,x\n", encoding="utf-8")
-        code, _, err = self.run_cli("screen", str(self.records), "--criteria", str(self.criteria), "--out", str(self.out), "--fake", str(self.fixtures))
+        code, _, err = self.run_cli(
+            "screen",
+            str(self.records),
+            "--criteria",
+            str(self.criteria),
+            "--out",
+            str(self.out),
+            "--fake",
+            str(self.fixtures),
+        )
         self.assertEqual(code, 1)
         self.assertIn("do not match", err)
 
@@ -171,9 +252,19 @@ class CliTest(unittest.TestCase):
         code, out, _ = self.run_cli("prisma", str(self.out), "--json")
         self.assertEqual(code, 0)
         counts = json.loads(out)
-        self.assertEqual((counts["screened"], counts["included"], counts["maybe"], counts["excluded"]), (4, 1, 2, 1))
+        self.assertEqual(
+            (
+                counts["screened"],
+                counts["included"],
+                counts["maybe"],
+                counts["excluded"],
+            ),
+            (4, 1, 2, 1),
+        )
         self.assertEqual(counts["excluded_by_reason"], {"inclusion:population": 1})
-        code, out, _ = self.run_cli("agreement", str(self.out), str(self.human), "--json")
+        code, out, _ = self.run_cli(
+            "agreement", str(self.out), str(self.human), "--json"
+        )
         self.assertEqual(code, 0)
         report = json.loads(out)
         self.assertEqual(report["records_compared"], 4)
@@ -192,7 +283,14 @@ class CliTest(unittest.TestCase):
         from unittest import mock
 
         with mock.patch.dict(os.environ, {"TYPESAFE_API_KEY": ""}):
-            code, _, err = self.run_cli("screen", str(self.records), "--criteria", str(self.criteria), "--out", str(self.out))
+            code, _, err = self.run_cli(
+                "screen",
+                str(self.records),
+                "--criteria",
+                str(self.criteria),
+                "--out",
+                str(self.out),
+            )
         self.assertEqual(code, 1)
         self.assertIn("TYPESAFE_API_KEY", err)
 
@@ -207,13 +305,28 @@ class ReportFunctionsTest(unittest.TestCase):
             {"id": "5", "decision": "maybe", "reason": "no_abstract"},
         ]
         counts = prisma_counts(rows)
-        self.assertEqual(counts["excluded_by_reason"], {"inclusion:population": 2, "exclusion:animal": 1})
-        self.assertEqual((counts["included"], counts["maybe"], counts["excluded"]), (1, 1, 3))
+        self.assertEqual(
+            counts["excluded_by_reason"],
+            {"inclusion:population": 2, "exclusion:animal": 1},
+        )
+        self.assertEqual(
+            (counts["included"], counts["maybe"], counts["excluded"]), (1, 1, 3)
+        )
 
     def test_agreement_maybe_policy(self):
         rows = [
-            {"id": "1", "decision": "maybe", "reason": "uncertain:x", "inclusion_score": 0.5},
-            {"id": "2", "decision": "exclude", "reason": "inclusion:x", "inclusion_score": 0.1},
+            {
+                "id": "1",
+                "decision": "maybe",
+                "reason": "uncertain:x",
+                "inclusion_score": 0.5,
+            },
+            {
+                "id": "2",
+                "decision": "exclude",
+                "reason": "inclusion:x",
+                "inclusion_score": 0.1,
+            },
         ]
         human = {"1": True, "2": False}
         as_include = agreement_report(rows, human, maybe_as="include")

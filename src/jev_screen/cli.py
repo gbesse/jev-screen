@@ -5,16 +5,42 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
+import hashlib
+from datetime import datetime, timezone
 import sys
 from pathlib import Path
 from typing import Any
 
 from .cache import ResultCache
-from .client import DEFAULT_MODEL, FakeJev, JevClient, JevError, RateLimiter, estimate_cost_usd, estimate_tokens
+from .client import (
+    DEFAULT_MODEL,
+    FakeJev,
+    JevClient,
+    JevError,
+    RateLimiter,
+    estimate_cost_usd,
+    estimate_tokens,
+)
 from .criteria import CriteriaError, build_state, load_criteria
 from .decision import EXCLUDE, INCLUDE, MAYBE, Decision
-from .records import Record, check_unique_ids, load_records, write_csv, write_jsonl, write_ris
-from .reports import agreement_report, format_agreement, format_prisma, prisma_counts, rank_rows, read_human_labels
+from .provenance import ProtocolError, fingerprint, protocol_snapshot
+from .records import (
+    Record,
+    check_unique_ids,
+    load_records,
+    write_csv,
+    write_jsonl,
+    write_ris,
+)
+from .reports import (
+    agreement_report,
+    format_agreement,
+    format_prisma,
+    prisma_counts,
+    rank_rows,
+    read_human_labels,
+)
 from .screening import (
     ScreenResult,
     completed_ids,
@@ -34,39 +60,95 @@ def _parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    est = sub.add_parser("estimate", help="count requests, tokens and estimated cost without calling Jev")
+    est = sub.add_parser(
+        "estimate", help="count requests, tokens and estimated cost without calling Jev"
+    )
     est.add_argument("records", help="records file (.ris, .nbib or .csv)")
     est.add_argument("--criteria", required=True, help="criteria JSON")
-    est.add_argument("--title-only", action="store_true", help="judge records without abstract from their title")
+    est.add_argument(
+        "--title-only",
+        action="store_true",
+        help="judge records without abstract from their title",
+    )
     est.add_argument("--json", action="store_true", help="print JSON instead of text")
 
-    scr = sub.add_parser("screen", help="screen records and write decisions.csv (resumable)")
+    scr = sub.add_parser(
+        "screen", help="screen records and write decisions.csv (resumable)"
+    )
     scr.add_argument("records", help="records file (.ris, .nbib or .csv)")
     scr.add_argument("--criteria", required=True, help="criteria JSON")
-    scr.add_argument("--out", required=True, help="decisions CSV (appended to on resume)")
-    scr.add_argument("--export-dir", help="write included/excluded/maybe as RIS, CSV and JSONL here")
-    scr.add_argument("--fake", metavar="FIXTURES", help="use fixture probabilities instead of the Jev API")
     scr.add_argument(
-        "--cache", nargs="?", const=DEFAULT_CACHE, metavar="PATH", help=f"exact-input cache file (default {DEFAULT_CACHE})"
+        "--out", required=True, help="decisions CSV (appended to on resume)"
     )
-    scr.add_argument("--title-only", action="store_true", help="judge records without abstract from their title")
-    scr.add_argument("--concurrency", type=int, default=8, help="parallel requests (default 8)")
-    scr.add_argument("--requests-per-minute", type=int, default=1000, help="in-process rate limit (default 1000)")
-    scr.add_argument("--timeout", type=float, default=30.0, help="seconds per request (default 30)")
-    scr.add_argument("--no-resume", action="store_true", help="overwrite --out instead of skipping done ids")
+    scr.add_argument(
+        "--export-dir", help="write included/excluded/maybe as RIS, CSV and JSONL here"
+    )
+    scr.add_argument(
+        "--fake",
+        metavar="FIXTURES",
+        help="use fixture probabilities instead of the Jev API",
+    )
+    scr.add_argument(
+        "--cache",
+        nargs="?",
+        const=DEFAULT_CACHE,
+        metavar="PATH",
+        help=f"exact-input cache file (default {DEFAULT_CACHE})",
+    )
+    scr.add_argument(
+        "--title-only",
+        action="store_true",
+        help="judge records without abstract from their title",
+    )
+    scr.add_argument(
+        "--concurrency", type=int, default=8, help="parallel requests (default 8)"
+    )
+    scr.add_argument(
+        "--requests-per-minute",
+        type=int,
+        default=1000,
+        help="in-process rate limit (default 1000)",
+    )
+    scr.add_argument(
+        "--timeout", type=float, default=30.0, help="seconds per request (default 30)"
+    )
+    scr.add_argument(
+        "--receipt",
+        metavar="PATH",
+        help="Nouveau reçu privé du protocole / New private protocol receipt / Nuevo recibo privado del protocolo",
+    )
+    scr.add_argument(
+        "--no-resume",
+        action="store_true",
+        help="overwrite --out instead of skipping done ids",
+    )
 
     pri = sub.add_parser("prisma", help="PRISMA screening counts from decisions.csv")
     pri.add_argument("decisions")
     pri.add_argument("--json", action="store_true")
 
-    agr = sub.add_parser("agreement", help="kappa, recall, specificity, WSS@95 against human labels")
+    agr = sub.add_parser(
+        "agreement", help="kappa, recall, specificity, WSS@95 against human labels"
+    )
     agr.add_argument("decisions")
     agr.add_argument("human", help="CSV with columns id,decision (include/exclude)")
-    agr.add_argument("--maybe-as", choices=[INCLUDE, EXCLUDE], default=INCLUDE, help="how to count tool 'maybe'")
-    agr.add_argument("--recall-target", type=float, default=0.95, help="recall level for WSS (default 0.95)")
+    agr.add_argument(
+        "--maybe-as",
+        choices=[INCLUDE, EXCLUDE],
+        default=INCLUDE,
+        help="how to count tool 'maybe'",
+    )
+    agr.add_argument(
+        "--recall-target",
+        type=float,
+        default=0.95,
+        help="recall level for WSS (default 0.95)",
+    )
     agr.add_argument("--json", action="store_true")
 
-    rnk = sub.add_parser("rank", help="reading order for human screeners, highest inclusion score first")
+    rnk = sub.add_parser(
+        "rank", help="reading order for human screeners, highest inclusion score first"
+    )
     rnk.add_argument("decisions")
     rnk.add_argument("--out", help="write the ranked CSV here instead of printing")
     rnk.add_argument("--top", type=int, default=0, help="print only the first N rows")
@@ -94,7 +176,9 @@ def cmd_estimate(args: argparse.Namespace) -> int:
             if not args.title_only or not state["title"]:
                 continue
         judged += 1
-        tokens += estimate_tokens({"model": DEFAULT_MODEL, "state": state, "questions": questions})
+        tokens += estimate_tokens(
+            {"model": DEFAULT_MODEL, "state": state, "questions": questions}
+        )
     summary = {
         "records": len(records),
         "without_abstract": without_abstract,
@@ -108,9 +192,13 @@ def cmd_estimate(args: argparse.Namespace) -> int:
         print(json.dumps(summary, indent=2))
     else:
         print(f"Records: {summary['records']} (without abstract: {without_abstract})")
-        print(f"Requests to Jev: {judged} ({len(criteria.all)} criteria each, one request per record)")
+        print(
+            f"Requests to Jev: {judged} ({len(criteria.all)} criteria each, one request per record)"
+        )
         print(f"Estimated input tokens: {tokens}")
-        print(f"Estimated cost: USD {summary['estimated_cost_usd']:.4f} ({summary['note']})")
+        print(
+            f"Estimated cost: USD {summary['estimated_cost_usd']:.4f} ({summary['note']})"
+        )
     return 0
 
 
@@ -119,35 +207,64 @@ def _export(export_dir: str, results: list[ScreenResult], criteria: Any) -> None
     out = Path(export_dir)
     out.mkdir(parents=True, exist_ok=True)
     columns = result_columns(criteria)
-    for bucket, name in ((INCLUDE, "included"), (EXCLUDE, "excluded"), (MAYBE, "maybe")):
+    for bucket, name in (
+        (INCLUDE, "included"),
+        (EXCLUDE, "excluded"),
+        (MAYBE, "maybe"),
+    ):
         subset = [r for r in results if r.decision.label == bucket]
-        notes = {r.record.id: f"jev-screen decision={r.decision.label}; reason={r.decision.reason}" for r in subset}
+        notes = {
+            r.record.id: f"jev-screen decision={r.decision.label}; reason={r.decision.reason}; protocol_sha256={r.protocol_sha256}; record_sha256={r.record_sha256}"
+            for r in subset
+        }
         write_ris([r.record for r in subset], out / f"{name}.ris", notes)
-        rows = [{**result_row(r, criteria), "abstract": r.record.abstract} for r in subset]
+        rows = [
+            {**result_row(r, criteria), "abstract": r.record.abstract} for r in subset
+        ]
         write_csv(rows, out / f"{name}.csv", columns + ["abstract"])
         write_jsonl(
-            [{**r.record.to_dict(), "decision": r.decision.label, "reason": r.decision.reason, "probabilities": r.probabilities}
-             for r in subset],
+            [
+                {
+                    **r.record.to_dict(),
+                    "decision": r.decision.label,
+                    "reason": r.decision.reason,
+                    "probabilities": r.probabilities,
+                    "protocol_sha256": r.protocol_sha256,
+                    "record_sha256": r.record_sha256,
+                }
+                for r in subset
+            ],
             out / f"{name}.jsonl",
         )
 
 
-def cmd_screen(args: argparse.Namespace) -> int:
+def _screen(args: argparse.Namespace, receipt: Any = None) -> int:
     records, criteria = _load(args.records, args.criteria)
     if args.fake:
         provider: Any = FakeJev.load(args.fake)
         print(f"Provider: fake fixtures {args.fake} (no network call)", file=sys.stderr)
     else:
-        provider = JevClient(timeout_seconds=args.timeout, rate_limiter=RateLimiter(args.requests_per_minute))
-        print("Provider: api.typesafe.ai (paid requests, title and abstract are sent)", file=sys.stderr)
+        provider = JevClient(
+            timeout_seconds=args.timeout,
+            rate_limiter=RateLimiter(args.requests_per_minute),
+        )
+        print(
+            "Provider: api.typesafe.ai (paid requests, title and abstract are sent)",
+            file=sys.stderr,
+        )
     cache = ResultCache(args.cache) if args.cache else None
     out = Path(args.out)
     columns = result_columns(criteria)
     if args.no_resume and out.exists():
         out.unlink()
-    done = completed_ids(out, criteria)
+    done = completed_ids(
+        out, criteria, records=records, provider=provider, title_only=args.title_only
+    )
     if done:
-        print(f"Resuming: {len(done)} of {len(records)} records already in {out}", file=sys.stderr)
+        print(
+            f"Resuming: {len(done)} of {len(records)} records already in {out} / Reprise : {len(done)} sur {len(records)} / Reanudación: {len(done)} de {len(records)}",
+            file=sys.stderr,
+        )
     out.parent.mkdir(parents=True, exist_ok=True)
     new_file = not out.exists() or out.stat().st_size == 0
     counts = {INCLUDE: 0, EXCLUDE: 0, MAYBE: 0}
@@ -197,13 +314,82 @@ def cmd_screen(args: argparse.Namespace) -> int:
             record = by_id.get(row["id"])
             if record is None:
                 continue  # rows from a previous run over a different records file are left out of the export
-            probabilities = {cid: row[f"p_{cid}"] for cid in criteria.ids if row.get(f"p_{cid}") is not None}
-            decision = Decision(row["decision"], row["reason"], row.get("inclusion_score"))
-            results.append(ScreenResult(record, decision, probabilities, 0, True, row.get("model", ""), row.get("request_key", "")))
+            probabilities = {
+                cid: row[f"p_{cid}"]
+                for cid in criteria.ids
+                if row.get(f"p_{cid}") is not None
+            }
+            decision = Decision(
+                row["decision"], row["reason"], row.get("inclusion_score")
+            )
+            results.append(
+                ScreenResult(
+                    record,
+                    decision,
+                    probabilities,
+                    int(row["input_tokens"]),
+                    row["cached"] == "1",
+                    row.get("model", ""),
+                    row.get("request_key", ""),
+                    row.get("protocol_sha256", ""),
+                    row.get("record_sha256", ""),
+                )
+            )
         _export(args.export_dir, results, criteria)
-        print(f"Exports written to {args.export_dir}/ (included/excluded/maybe as .ris, .csv, .jsonl)", file=sys.stderr)
+        print(
+            f"Exports written to {args.export_dir}/ (included/excluded/maybe as .ris, .csv, .jsonl)",
+            file=sys.stderr,
+        )
+    if receipt is not None:
+        snapshot = protocol_snapshot(criteria, provider, title_only=args.title_only)
+        data = {
+            "schema_version": 1,
+            "artifact_type": "jev-screen-protocol-receipt",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "protocol": snapshot,
+            "protocol_sha256": fingerprint(snapshot),
+            "decisions_csv_sha256": hashlib.sha256(out.read_bytes()).hexdigest(),
+            "counts": prisma_counts(read_decisions(out)),
+            "signature": None,
+        }
+        receipt.write(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
     print(str(out))
     return 0
+
+
+def cmd_screen(args: argparse.Namespace) -> int:
+    receipt = None
+    completed = False
+    path = None
+    if args.receipt:
+        path = Path(args.receipt)
+        reserved = [args.records, args.criteria, args.out, args.fake, args.cache]
+        if args.export_dir:
+            reserved += [
+                str(Path(args.export_dir) / (bucket + suffix))
+                for bucket in ("included", "excluded", "maybe")
+                for suffix in (".ris", ".csv", ".jsonl")
+            ]
+        if path.resolve() in {Path(p).resolve() for p in reserved if p}:
+            raise ProtocolError("receipt")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            receipt = os.fdopen(
+                os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600),
+                "w",
+                encoding="utf-8",
+            )
+        except OSError:
+            raise ProtocolError("receipt") from None
+    try:
+        code = _screen(args, receipt)
+        completed = code == 0
+        return code
+    finally:
+        if receipt is not None:
+            receipt.close()
+            if not completed:
+                path.unlink(missing_ok=True)
 
 
 def cmd_prisma(args: argparse.Namespace) -> int:
@@ -215,7 +401,9 @@ def cmd_prisma(args: argparse.Namespace) -> int:
 def cmd_agreement(args: argparse.Namespace) -> int:
     rows = read_decisions(args.decisions)
     human, ignored = read_human_labels(args.human)
-    report = agreement_report(rows, human, maybe_as=args.maybe_as, recall_target=args.recall_target)
+    report = agreement_report(
+        rows, human, maybe_as=args.maybe_as, recall_target=args.recall_target
+    )
     report["human_rows_with_other_label"] = ignored
     if args.json:
         print(json.dumps(report, indent=2))
@@ -231,12 +419,20 @@ def cmd_rank(args: argparse.Namespace) -> int:
     if args.top > 0:
         ranked = ranked[: args.top]
     if args.out:
-        columns = ["rank"] + [c for c in ranked[0].keys() if c != "rank"] if ranked else ["rank"]
+        columns = (
+            ["rank"] + [c for c in ranked[0].keys() if c != "rank"]
+            if ranked
+            else ["rank"]
+        )
         write_csv(ranked, args.out, columns)
         print(args.out)
         return 0
     for row in ranked:
-        score = "  n/a" if row.get("inclusion_score") is None else f"{row['inclusion_score']:.3f}"
+        score = (
+            "  n/a"
+            if row.get("inclusion_score") is None
+            else f"{row['inclusion_score']:.3f}"
+        )
         title = (row.get("title") or "")[:70]
         print(f"{row['rank']:>4}  {score}  {row['decision']:<7}  {row['id']}  {title}")
     return 0
