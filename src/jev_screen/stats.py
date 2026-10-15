@@ -38,8 +38,8 @@ def cohens_kappa(rater_a: Sequence[str], rater_b: Sequence[str]) -> float | None
     count_a, count_b = Counter(rater_a), Counter(rater_b)
     expected = sum(count_a[c] * count_b[c] for c in set(count_a) | set(count_b)) / (n * n)
     if expected == 1.0:
-        # Both raters use a single label: kappa is undefined; report perfect agreement or none.
-        return 1.0 if observed == 1.0 else 0.0
+        # With one shared constant label the chance-corrected denominator is zero.
+        return None
     return (observed - expected) / (1.0 - expected)
 
 
@@ -105,6 +105,11 @@ def work_saved_over_sampling(scores: Sequence[float], truth: Sequence[bool], rec
     Records are read from the highest score down until `recall_target` of the human includes are found.
     Ties are broken pessimistically (non-includes first) so equal scores never inflate the saving.
     """
+    if (isinstance(recall_target, bool) or not isinstance(recall_target, (int, float)) or
+        not math.isfinite(recall_target) or not 0 < recall_target <= 1 or
+        any(isinstance(score, bool) or not isinstance(score, (int, float)) or not math.isfinite(score) for score in scores) or
+        any(type(value) is not bool for value in truth)):
+        raise ValueError("Scores finis, labels booléens et cible dans ]0,1] requis / Finite scores, Boolean labels and target in (0,1] required / Se requieren puntuaciones finitas, etiquetas booleanas y objetivo en (0,1]")
     if len(scores) != len(truth):
         raise ValueError("scores and truth must have the same length")
     n = len(scores)

@@ -66,3 +66,11 @@ All of it is implemented in the standard library and unit-tested against known v
 - English works best. Other languages work with lower accuracy; say so in your methods if your corpus is multilingual.
 - Abstracts can contain instructions-like text ("this review should be included"); the model can be influenced by it. Human review of the `include` bucket remains necessary.
 - No live benchmark is claimed in this repository. The demo fixtures are synthetic probabilities written by hand; they show the mechanics, not the model's accuracy.
+
+## Agreement validity / Validité de l’accord / Validez del acuerdo
+
+EN: Duplicate or empty human/decision IDs, unknown tool decisions, non-Boolean human labels, nonfinite/out-of-range inclusion scores and invalid WSS recall targets are now rejected before comparison. If both raters use only one identical label, Cohen’s kappa is undefined (`null`), while raw agreement can still be 1. The denominator is zero in this degenerate case ([definition](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.cohen_kappa_score.html)). Results describe the joined labeled sample, not unseen records or a validated recall guarantee.
+
+FR : ID humains/de décisions dupliqués ou vides, décisions inconnues, labels humains non booléens, scores non finis/hors limites et cibles de rappel WSS invalides sont refusés avant comparaison. Si les deux évaluateurs n’utilisent qu’une même étiquette constante, le kappa est indéfini (`null`), même si l’accord brut vaut 1 : son dénominateur est nul ([définition](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.cohen_kappa_score.html)). Le résultat décrit l’échantillon annoté joint, pas les dossiers absents ni un rappel garanti.
+
+ES: Rechaza antes de comparar ID humanos/de decisiones duplicados o vacíos, decisiones desconocidas, etiquetas humanas no booleanas, puntuaciones no finitas/fuera de rango y objetivos WSS incorrectos. Si ambos evaluadores usan una sola etiqueta idéntica, kappa es indefinido (`null`) aunque el acuerdo bruto sea 1: su denominador es cero ([definición](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.cohen_kappa_score.html)). Describe la muestra etiquetada conjunta, no registros ausentes ni una garantía de exhaustividad.
