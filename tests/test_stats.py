@@ -14,7 +14,7 @@ class KappaTest(unittest.TestCase):
 
     def test_perfect_and_degenerate(self):
         self.assertEqual(cohens_kappa(["a", "b"], ["a", "b"]), 1.0)
-        self.assertEqual(cohens_kappa(["a", "a"], ["a", "a"]), 1.0)
+        self.assertIsNone(cohens_kappa(["a", "a"], ["a", "a"]))
         self.assertEqual(cohens_kappa(["a", "a"], ["b", "b"]), 0.0)
         self.assertIsNone(cohens_kappa([], []))
         with self.assertRaises(ValueError):
@@ -78,6 +78,36 @@ class WssTest(unittest.TestCase):
     def test_no_positives_is_undefined(self):
         self.assertIsNone(work_saved_over_sampling([0.1, 0.2], [False, False]).wss)
 
+
+class InputValidityTests(unittest.TestCase):
+    def test_wss_invalid_target_and_scores_are_refused(self):
+        for target in (0, -1, 1.1, float('nan'), True):
+            with self.assertRaises(ValueError):work_saved_over_sampling([.5], [True], target)
+        for score in (float('nan'), float('inf'), True, '0.5'):
+            with self.assertRaises(ValueError):work_saved_over_sampling([score], [True])
+
+    def test_agreement_rejects_duplicate_ids_and_unknown_decisions(self):
+        from jev_screen.reports import agreement_report
+        row={'id':'one','decision':'include','inclusion_score':.9}
+        for rows in ([row,row],[dict(row,decision='unknown')],[dict(row,inclusion_score=float('nan'))]):
+            with self.assertRaises(ValueError):agreement_report(rows,{'one':True})
+        with self.assertRaises(ValueError):agreement_report([row],{'one':1})
+
+    def test_constant_label_agreement_keeps_raw_agreement_but_kappa_undefined(self):
+        from jev_screen.reports import agreement_report
+        result=agreement_report([{'id':'one','decision':'include','inclusion_score':.9}],{'one':True})
+        self.assertEqual(result['percent_agreement']['value'],1)
+        self.assertIsNone(result['cohens_kappa'])
+
+    def test_duplicate_human_labels_do_not_silently_overwrite(self):
+        from jev_screen.reports import read_human_labels
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        with TemporaryDirectory() as root:
+            path=Path(root)/'human.csv'
+            for csv in ('id,decision\none,include\none,exclude\n', 'id,decision\n,include\n'):
+                path.write_text(csv)
+                with self.assertRaises(ValueError):read_human_labels(path)
 
 if __name__ == "__main__":
     unittest.main()

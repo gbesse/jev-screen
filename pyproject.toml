@@ -1,11 +1,11 @@
 # Purpose: Package metadata for jev-screen (stdlib-only title/abstract screening CLI and library).
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "jev-screen"
-version = "0.2.0"
+version = "0.2.1"
 description = "Title/abstract screening for systematic reviews with Jev: include/exclude/maybe per criterion, PRISMA counts, RIS export, agreement and recall against human screeners."
 readme = "README.md"
 requires-python = ">=3.11"

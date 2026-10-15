@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import os
+import math
 from collections import Counter
 from typing import Any
 
@@ -43,11 +44,16 @@ def read_human_labels(path: str | os.PathLike[str]) -> tuple[dict[str, bool], in
     """`id,decision` CSV from human screeners; returns include flags and how many rows had another label."""
     labels: dict[str, bool] = {}
     ignored = 0
+    seen = set()
     with open(path, "r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
         if reader.fieldnames is None or "id" not in reader.fieldnames or "decision" not in reader.fieldnames:
             raise ValueError(f"{path}: expected columns id,decision")
         for row in reader:
+            identifier = row.get("id")
+            if not isinstance(identifier, str) or not identifier.strip() or identifier in seen:
+                raise ValueError("ID humains vides ou dupliqués / Empty or duplicate human IDs / ID humanos vacíos o duplicados")
+            seen.add(identifier)
             value = (row.get("decision") or "").strip().lower()
             if value in HUMAN_INCLUDE:
                 labels[row["id"]] = True
@@ -82,6 +88,21 @@ def agreement_report(
     """
     if maybe_as not in (INCLUDE, EXCLUDE):
         raise ValueError("maybe_as must be 'include' or 'exclude'")
+    invalid = "Données de comparaison invalides / Invalid comparison data / Datos de comparación no válidos"
+    if not isinstance(rows, list) or not isinstance(human, dict) or any(
+        not isinstance(identifier, str) or not identifier.strip() or type(label) is not bool
+        for identifier, label in human.items()
+    ):
+        raise ValueError(invalid)
+    identifiers = set()
+    for row in rows:
+        if (not isinstance(row, dict) or not isinstance(row.get("id"), str) or not row["id"].strip()
+            or row["id"] in identifiers or row.get("decision") not in (INCLUDE, EXCLUDE, MAYBE)):
+            raise ValueError(invalid)
+        score = row.get("inclusion_score")
+        if score is not None and (isinstance(score, bool) or not isinstance(score, (int, float)) or not math.isfinite(score) or not 0 <= score <= 1):
+            raise ValueError(invalid)
+        identifiers.add(row["id"])
     joined = [row for row in rows if row["id"] in human]
     predicted = [row["decision"] == INCLUDE or (row["decision"] == MAYBE and maybe_as == INCLUDE) for row in joined]
     truth = [human[row["id"]] for row in joined]
