@@ -124,3 +124,10 @@ FR : La version 0.2.0 bloque les reprises obsolètes après changement de critè
 EN: Version 0.2.0 blocks stale resume after changes to criteria, thresholds or records. `--receipt new.json` exports a private unsigned protocol and CSV receipt. Legacy CSVs remain readable but cannot establish context for resume. [FR/EN/ES guide](docs/protocol-resume.md).
 
 ES: La versión 0.2.0 bloquea reanudaciones obsoletas tras cambios de criterios, umbrales o registros. `--receipt nuevo.json` exporta un recibo privado sin firma del protocolo y CSV. Los CSV antiguos siguen siendo legibles, pero no prueban el contexto para reanudar. [Guía FR/EN/ES](docs/protocol-resume.md).
+
+
+FR : `read_decisions` refuse les colonnes ou identifiants dupliqués, lignes incomplètes/excédentaires, décisions inconnues et probabilités non finies ou hors [0,1]. Les cellules probabilistes vides restent inconnues (`None`), par exemple sans résumé. La lecture structurelle ne vérifie pas les checksums de provenance : utilisez la validation de reprise prévue pour cela. Aucune mesure nouvelle de rappel ou qualité clinique.
+
+EN: `read_decisions` rejects duplicate headers/IDs, short/extra rows, unknown decisions and nonfinite/out-of-range [0,1] probabilities. Blank probability cells remain unknown (`None`), for example without abstracts. Structural reading does not verify provenance checksums: use the dedicated resume validation for that. No new recall or clinical-quality measurement.
+
+ES: `read_decisions` rechaza columnas/identificadores duplicados, filas incompletas/excedentes, decisiones desconocidas y probabilidades no finitas o fuera de [0,1]. Celdas probabilísticas vacías siguen desconocidas (`None`), por ejemplo sin resumen. La lectura estructural no verifica checksums de procedencia: use la validación de reanudación correspondiente. Sin nueva medición de recall o calidad clínica.

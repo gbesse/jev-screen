@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import math
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
@@ -99,13 +100,24 @@ def read_decisions(path: str | os.PathLike[str]) -> list[dict[str, Any]]:
     with open(path, "r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
         required = {"id", "decision", "reason"}
-        if reader.fieldnames is None or not required.issubset(reader.fieldnames):
-            raise ValueError(f"{path}: expected columns {sorted(required)}")
+        error = "CSV de décisions invalide / Invalid decisions CSV / CSV de decisiones no válido"
+        if reader.fieldnames is None or not required.issubset(reader.fieldnames) or len(set(reader.fieldnames)) != len(reader.fieldnames):
+            raise ValueError(error)
+        seen = set()
         for raw in reader:
+            if None in raw or any(value is None for value in raw.values()) or not raw["id"].strip() or raw["id"] in seen or raw["decision"] not in {"include", "exclude", "maybe"}:
+                raise ValueError(error)
+            seen.add(raw["id"])
             row: dict[str, Any] = dict(raw)
             for key, value in raw.items():
                 if key == "inclusion_score" or key.startswith("p_"):
-                    row[key] = float(value) if value not in (None, "") else None
+                    try:
+                        probability = float(value) if value != "" else None
+                    except ValueError:
+                        raise ValueError(error) from None
+                    if probability is not None and (not math.isfinite(probability) or not 0 <= probability <= 1):
+                        raise ValueError(error)
+                    row[key] = probability
             rows.append(row)
     return rows
 
