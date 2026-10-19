@@ -131,3 +131,11 @@ FR : `read_decisions` refuse les colonnes ou identifiants dupliqués, lignes inc
 EN: `read_decisions` rejects duplicate headers/IDs, short/extra rows, unknown decisions and nonfinite/out-of-range [0,1] probabilities. Blank probability cells remain unknown (`None`), for example without abstracts. Structural reading does not verify provenance checksums: use the dedicated resume validation for that. No new recall or clinical-quality measurement.
 
 ES: `read_decisions` rechaza columnas/identificadores duplicados, filas incompletas/excedentes, decisiones desconocidas y probabilidades no finitas o fuera de [0,1]. Celdas probabilísticas vacías siguen desconocidas (`None`), por ejemplo sin resumen. La lectura estructural no verifica checksums de procedencia: use la validación de reanudación correspondiente. Sin nueva medición de recall o calidad clínica.
+
+## Envoi borné / Bounded dispatch / Envío acotado
+
+FR — Le traitement ne soumet plus tous les articles à l’avance : la fenêtre est limitée à `concurrency` articles depuis le dernier résultat écrit, entre 1 et 64. Une erreur observée arrête les nouveaux envois ; les requêtes déjà en cours peuvent terminer. Les sorties gardent l’ordre initial et le cache/reprise conservent leur contexte.
+
+EN — Screening no longer queues every paper upfront: the window is bounded to `concurrency` papers beyond the last emitted result, from 1 to 64. Observed failures stop new submissions; in-flight requests may finish. Output retains input order and cache/resume context.
+
+ES — El cribado ya no encola todos los artículos por adelantado: la ventana se limita a `concurrency` artículos desde el último resultado emitido, de 1 a 64. Fallos observados detienen nuevos envíos; peticiones en curso pueden terminar. Salida mantiene orden y contexto de caché/reanudación.
