@@ -5,7 +5,7 @@ from __future__ import annotations
 import csv
 import math
 import os
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Iterable
@@ -264,35 +264,42 @@ def screen_records(
     loses at most the buffered tail, which the cache still holds). Any provider error cancels the remaining
     work and propagates.
     """
+    if isinstance(concurrency, bool) or not isinstance(concurrency, int) or not 1 <= concurrency <= 64:
+        raise ValueError("Concurrence entière de 1 à 64 requise / Integer concurrency from 1 to 64 required / Se requiere concurrencia entera de 1 a 64")
     context = ScreeningContext.build(criteria, provider, title_only=title_only)
     records = list(records)
     check_unique_ids(records)
     skip = set(skip_ids)
     todo = [r for r in records if r.id not in skip]
     results: dict[str, ScreenResult] = {}
-    workers = max(1, int(concurrency))
+    workers = concurrency
     next_index = 0
+    next_submit = 0
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = {
-            pool.submit(
-                screen_one,
-                record,
-                criteria,
-                provider,
-                cache=cache,
-                title_only=title_only,
-                _context=context,
-            ): record
-            for record in todo
-        }
+        futures = {}
+        def fill_window():
+            nonlocal next_submit
+            while next_submit < min(len(todo), next_index + workers):
+                record = todo[next_submit]
+                future = pool.submit(screen_one, record, criteria, provider, cache=cache, title_only=title_only, _context=context)
+                futures[future] = record
+                next_submit += 1
         try:
-            for future in as_completed(futures):
-                result = future.result()
-                results[result.record.id] = result
+            fill_window()
+            while futures:
+                done, _ = wait(futures, return_when=FIRST_COMPLETED)
+                # Observe every completed failure before dispatching or writing successors.
+                for future in done:
+                    future.result()
+                for future in done:
+                    result = future.result()
+                    results[result.record.id] = result
+                    del futures[future]
                 while next_index < len(todo) and todo[next_index].id in results:
                     if on_result is not None:
                         on_result(results[todo[next_index].id])
                     next_index += 1
+                fill_window()
         except BaseException:
             for future in futures:
                 future.cancel()
