@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import copy
 import os
 import tempfile
 import threading
@@ -33,7 +34,7 @@ class ResultCache:
 
     def get(self, key: str) -> JevResult | None:
         with self._lock:
-            entry = self._entries.get(key)
+            entry = copy.deepcopy(self._entries.get(key))
         if entry is None:
             return None
         usage = dict(entry.get("usage", {}))
@@ -49,8 +50,8 @@ class ResultCache:
         with self._lock:
             self._entries[key] = {
                 "model": result.model,
-                "answers": result.answers,
-                "usage": result.usage,
+                "answers": copy.deepcopy(result.answers),
+                "usage": copy.deepcopy(result.usage),
                 "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             }
             self._dirty = True

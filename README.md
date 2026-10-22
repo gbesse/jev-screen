@@ -139,3 +139,11 @@ FR — Le traitement ne soumet plus tous les articles à l’avance : la fenêtr
 EN — Screening no longer queues every paper upfront: the window is bounded to `concurrency` papers beyond the last emitted result, from 1 to 64. Observed failures stop new submissions; in-flight requests may finish. Output retains input order and cache/resume context.
 
 ES — El cribado ya no encola todos los artículos por adelantado: la ventana se limita a `concurrency` artículos desde el último resultado emitido, de 1 a 64. Fallos observados detienen nuevos envíos; peticiones en curso pueden terminar. Salida mantiene orden y contexto de caché/reanudación.
+
+## Cache / Cache / Caché
+
+FR — Le cache détache les réponses et usages à l’écriture et à la lecture : modifier un objet retourné ne réécrit plus un verdict en mémoire ou sauvegardé.
+
+EN — The cache detaches answers and usage on write and read: mutating a returned object cannot rewrite an in-memory or persisted verdict.
+
+ES — La caché separa respuestas y uso al escribir y leer: modificar un objeto devuelto no reescribe un veredicto en memoria o persistido.
