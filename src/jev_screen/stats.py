@@ -128,3 +128,12 @@ def work_saved_over_sampling(scores: Sequence[float], truth: Sequence[bool], rec
                 break
     wss = (n - screened) / n - (1.0 - recall_target)
     return WorkSaved(recall_target, n, positives, screened, wss)
+
+
+def recall_by_group(predicted, truth, groups):
+    if len(predicted)!=len(truth)or len(truth)!=len(groups)or any(type(x)is not bool for x in list(predicted)+list(truth))or any(not isinstance(g,str)or not g for g in groups):raise ValueError("Groupes ou jugements invalides / Invalid groups or judgments / Grupos o juicios inválidos")
+    out=[]
+    for group in sorted(set(groups)):
+        ids=[i for i,g in enumerate(groups)if g==group];c=confusion([predicted[i]for i in ids],[truth[i]for i in ids]);positive=c.tp+c.fn
+        out.append({'group':group,'n':c.n,'tp':c.tp,'fn':c.fn,'fp':c.fp,'tn':c.tn,'recall':c.sensitivity,'recall_ci95':wilson_interval(c.tp,positive),'precision':c.precision})
+    return {'groups':out,'simultaneous_interval_guarantee':False}
