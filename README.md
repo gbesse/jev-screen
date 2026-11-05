@@ -147,3 +147,12 @@ FR — Le cache détache les réponses et usages à l’écriture et à la lectu
 EN — The cache detaches answers and usage on write and read: mutating a returned object cannot rewrite an in-memory or persisted verdict.
 
 ES — La caché separa respuestas y uso al escribir y leer: modificar un objeto devuelto no reescribe un veredicto en memoria o persistido.
+
+
+## 2026-11-05 — FR / EN / ES
+
+FR : `recall_by_group(predicted,truth,groups)` ajoute rappels et intervalles Wilson par groupe ; sans positif, le rappel reste inconnu. Des bornes marginales ne forment pas une garantie simultanée entre groupes.
+
+EN: `recall_by_group(predicted,truth,groups)` adds recall and Wilson intervals per group; no positives leaves recall unknown. Marginal bounds do not provide a simultaneous guarantee across groups.
+
+ES: `recall_by_group(predicted,truth,groups)` añade recall e intervalos Wilson por grupo; sin positivos queda desconocido. Cotas marginales no garantizan simultaneidad entre grupos.
