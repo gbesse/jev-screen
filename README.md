@@ -156,3 +156,12 @@ FR : `recall_by_group(predicted,truth,groups)` ajoute rappels et intervalles Wil
 EN: `recall_by_group(predicted,truth,groups)` adds recall and Wilson intervals per group; no positives leaves recall unknown. Marginal bounds do not provide a simultaneous guarantee across groups.
 
 ES: `recall_by_group(predicted,truth,groups)` añade recall e intervalos Wilson por grupo; sin positivos queda desconocido. Cotas marginales no garantizan simultaneidad entre grupos.
+
+
+## 2026-11-12 — FR / EN / ES
+
+FR : Préparer une file d’arbitrage entre relecteurs sans transformer les labels absents en exclusions.
+
+EN: Prepare reviewer adjudication queues without turning missing labels into exclusions.
+
+ES: Preparar colas de adjudicación sin convertir etiquetas ausentes en exclusiones.
